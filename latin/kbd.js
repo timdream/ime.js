@@ -141,6 +141,17 @@ var IME = (function () {
         ["a","s","d","f","g","h","j","k","l","ö","ä"],
         ["shift","z","x","c","v","b","n","m","delete"]
       ]
+    },
+    'zh-phonetic-standard': {
+      alt: {
+      },
+      text: [
+        ["ㄅ","ㄉ","ˇ","ˋ","ㄓ","ˊ","˙","ㄚ","ㄞ","ㄢ","ㄦ"],
+        ["ㄆ","ㄊ","ㄍ","ㄐ","ㄔ","ㄗ","ㄧ","ㄛ","ㄟ","ㄣ"],
+        ["ㄇ","ㄋ","ㄎ","ㄑ","ㄕ","ㄘ","ㄨ","ㄜ","ㄠ","ㄤ"],
+        ["ㄈ","ㄌ","ㄏ","ㄒ","ㄖ","ㄙ","ㄩ","ㄝ","ㄡ","ㄥ","delete"],
+        ["symbol","space","return"]
+      ]
     }
   };
 
@@ -269,7 +280,7 @@ var IME = (function () {
 })();
 
 function OnLoad() {
-  var languages = ["en", "de", "fr", "iw", "nb", "ru", "sr", "sv"];
+  var languages = ["en", "de", "fr", "iw", "nb", "ru", "sr", "sv", "zh-phonetic-standard"];
   for (var n = 0; n < languages.length; ++n) {
     var lang = languages[n];
     var div = document.createElement("div");
