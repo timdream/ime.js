@@ -1,0 +1,149 @@
+<style>
+textarea {
+	width: 100%;
+}
+.error {
+	color: red;
+}
+#buffer span {
+	text-decoration: underline;
+	padding: 0 0.2em;
+}
+</style>
+<textarea id="result" rows="20" cols="60"></textarea>
+<p id="buffer"></p>
+<p id="syllables"><span id="consonant"></span><span id="vowel1"></span><span id="vowel2"></span><span id="tone"></span></p>
+<ul id="selections"></ul>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script src="./jszhuying.js"></script>
+<script>
+
+var jszhuying = JSZhuYing(
+	{
+		ready: function () {
+/*			console.log('ready');
+			console.log(
+				'ㄐㄧㄣㄊㄧㄢㄊㄧㄢㄑㄧˋㄏㄠˇ',
+				//jszhuying.getTerms(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ']),
+				jszhuying.getTermWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ']),
+				//jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ']),
+				jszhuying.getSentenceWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'])
+			);
+*/
+		}
+	}
+),
+layout = {
+	",":"ㄝ",
+	"-":"ㄦ",
+	".":"ㄡ",
+	"/":"ㄥ",
+	"0":"ㄢ",
+	"1":"ㄅ",
+	"2":"ㄉ",
+	"3":"ˇ",
+	"4":"ˋ",
+	"5":"ㄓ",
+	"6":"ˊ",
+	"7":"˙",
+	"8":"ㄚ",
+	"9":"ㄞ",
+	";":"ㄤ",
+	"a":"ㄇ",
+	"b":"ㄖ",
+	"c":"ㄏ",
+	"d":"ㄎ",
+	"e":"ㄍ",
+	"f":"ㄑ",
+	"g":"ㄕ",
+	"h":"ㄘ",
+	"i":"ㄛ",
+	"j":"ㄨ",
+	"k":"ㄜ",
+	"l":"ㄠ",
+	"m":"ㄩ",
+	"n":"ㄙ",
+	"o":"ㄟ",
+	"p":"ㄣ",
+	"q":"ㄆ",
+	"r":"ㄐ",
+	"s":"ㄋ",
+	"t":"ㄔ",
+	"u":"ㄧ",
+	"v":"ㄒ",
+	"w":"ㄊ",
+	"x":"ㄌ",
+	"y":"ㄗ",
+	"z":"ㄈ",
+	" ":""
+},
+altLayout = {
+	'<':'，',
+	'>':'。',
+	':':'：',
+	'"':'；'
+},
+symbolType = {
+	"ㄅ":"consonant","ㄆ":"consonant","ㄇ":"consonant","ㄈ":"consonant","ㄉ":"consonant","ㄊ":"consonant","ㄋ":"consonant","ㄌ":"consonant","ㄍ":"consonant","ㄎ":"consonant","ㄏ":"consonant","ㄐ":"consonant","ㄑ":"consonant","ㄒ":"consonant","ㄓ":"consonant","ㄔ":"consonant","ㄕ":"consonant","ㄖ":"consonant","ㄗ":"consonant","ㄘ":"consonant","ㄙ":"consonant",
+	"ㄧ":"vowel1","ㄨ":"vowel1","ㄩ":"vowel1",
+	"ㄚ":"vowel2","ㄛ":"vowel2","ㄜ":"vowel2","ㄝ":"vowel2","ㄞ":"vowel2","ㄟ":"vowel2","ㄠ":"vowel2","ㄡ":"vowel2","ㄢ":"vowel2","ㄣ":"vowel2","ㄤ":"vowel2","ㄥ":"vowel2","ㄦ":"vowel2",
+	"":"tone","˙":"tone","ˊ":"tone","ˇ":"tone","ˋ":"tone"
+},
+syllablesInBuffer = [];
+
+jQuery(function($) {
+	var $buffer = $('#buffer'),
+	$syllables = $('#syllables'),
+	$selections = $('#selections');
+
+	$('textarea').on(
+		'keypress',
+		function (ev) {
+			if (ev.altKey || ev.metaKey) return;
+
+			var chr = String.fromCharCode(ev.charCode);
+
+			if (ev.shiftKey) {
+				if (chr in altLayout) {
+					this.value += $buffer.text() + altLayout[chr];
+					$buffer.empty();
+					syllablesInBuffer = [];
+				} else {
+					return;
+				}
+			}
+
+			if (ev.keyCode === 13) { // enter
+				this.value += $buffer.text();
+				$buffer.empty();
+				syllablesInBuffer = [];
+				ev.preventDefault();
+			}
+
+			if (!(chr in layout)) return;
+
+			ev.preventDefault();
+			$('#' + symbolType[layout[chr]]).text(layout[chr]);
+			$syllables.removeClass('error');
+
+			if (symbolType[layout[chr]] === 'tone') {
+				if (jszhuying.getTerms([$syllables.text()])) {
+					syllablesInBuffer.push($syllables.text());
+					$syllables.children().text('');
+
+					$buffer.empty();
+					jszhuying.getSentenceWithHighestScore(syllablesInBuffer).forEach(
+						function (term) {
+							$buffer.append(
+								$('<span />').text(term.t)
+							);
+						}
+					);
+				} else {
+					$syllables.addClass('error');
+				}
+			}
+		}
+	).focus();
+});
+</script>
