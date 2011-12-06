@@ -10,7 +10,7 @@ textarea {
 	padding: 0 0.2em;
 }
 </style>
-<textarea id="result" rows="20" cols="60"></textarea>
+<textarea id="result" rows="20" cols="60" disabled>Loading ...</textarea>
 <p id="buffer"></p>
 <p id="syllables"><span id="consonant"></span><span id="vowel1"></span><span id="vowel2"></span><span id="tone"></span></p>
 <ul id="selections"></ul>
@@ -21,6 +21,7 @@ textarea {
 var jszhuying = JSZhuYing(
 	{
 		ready: function () {
+			jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
 /*			console.log('ready');
 			console.log(
 				'ㄐㄧㄣㄊㄧㄢㄊㄧㄢㄑㄧˋㄏㄠˇ',
@@ -144,6 +145,6 @@ jQuery(function($) {
 				}
 			}
 		}
-	).focus();
+	);
 });
 </script>
