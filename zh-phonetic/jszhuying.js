@@ -13,10 +13,97 @@
 var JSZhuYing = function (settings) {
 
 	settings = settings || {};
+	if (typeof settings.progress !== 'function') settings.progress = function () {};
+	if (typeof settings.ready !== 'function') settings.ready = function () {};
 
 	var version = '0.1',
 	tsi,
+	db,
 	init = function () {
+		var that = this;
+		if (settings.disableIndexedDB) {
+			settings.progress.call(that, 'IndexedDB disabled; Downloading JSON ...');
+			getTermsJSON(
+				function () {
+					settings.ready.call(that);
+				}
+			);
+			return;
+		}
+		getTermsInDB(
+			function () {
+				if (!db) {
+					settings.progress.call(that, 'IndexedDB not available; Downloading JSON ...');
+					getTermsJSON(
+						function () {
+							settings.ready.call(that);
+						}
+					);
+				}
+
+				var transaction = db.transaction('terms'),
+				req = transaction.objectStore('terms').count();
+				req.onsuccess = function (ev) {
+					if (req.result === 0) {
+						settings.progress.call(that, 'IndexedDB is supported but empty; Downloading JSON ...');
+						getTermsJSON(
+							function () {
+								if (!tsi) return;
+								var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
+								store = transaction.objectStore('terms');
+
+								transaction.oncomplete = function () {
+									settings.ready.call(that);
+								};
+			
+								for (syllables in tsi) {
+									store.add(
+										{
+											syllables: syllables,
+											terms: tsi[syllables]
+										}
+									);
+								}
+								tsi = null;
+								delete tsi;
+							}
+						);
+						return;
+					}
+					// db is ready
+					//settings.progress.call(that, 'IndexedDB loaded: ' + req.result.toString(10) + ' entries.');
+					settings.ready.call(that);
+				};
+			}
+		);
+	},
+	getTermsInDB = function (callback) {
+		if (!mozIndexedDB || window.location.protocol === 'file:') {
+			callback();
+			return;
+		}
+		var req = mozIndexedDB.open('JSZhuYing', 1, 'JSZhuYing db');
+		req.onerror = function () {
+			console.log('JSZhuYing: there is a problem with the database.');
+			callback();
+		};
+		req.onupgradeneeded = function (ev) {
+			//console.log('upgradeneeded; get db', req, req.result);
+			db = req.result;
+			var store = db.createObjectStore(
+				'terms',
+				{
+					keyPath: 'syllables'
+				}
+			);
+		};
+		req.onsuccess = function () {
+			//console.log('success');
+			db = req.result;
+			callback();
+		};
+	},
+	getTermsJSON = function (callback) {
 		// Get tsi.json.js
 		// this is the database we need to get terms against.
 		// the JSON is converted from tsi.src in Chewing source code.
@@ -36,10 +123,10 @@ var JSZhuYing = function (settings) {
 			if (!tsi) {
 				console.log('JSZhuYing: tsi.json.js failed to load.');
 			}
-			if (typeof settings.ready === 'function') settings.ready.call(this);
-			
 			xhr.responseText = null;
 			delete xhr;
+
+			callback();
 		};
 		xhr.send(null);
 		
@@ -72,79 +159,108 @@ var JSZhuYing = function (settings) {
 	* With series of syllables, return an array of possible sentences 
 	*
 	*/
-	getSentences = function (syllables) {
-		var sentences = [];
+	getSentences = function (syllables, callback) {
+		var sentences = [], n = 0;
 		compositionsOf.call(
 			this,
 			syllables.length,
-			function (compositions) {
-				var str = [], score = 0, start = 0;
-				compositions.some(
-					function (length) {
-						var term = getTermWithHighestScore(syllables.slice(start, start + length));
-						if (!term) return true; // cause some() to stop
-						str.push(term);
-						start += length;
-						return false;
+			/* This callback will be called 2^(n-1) times */
+			function (composition) {
+				var str = [], score = 0, start = 0, i = 0,
+				next = function () {
+					var numOfWord = composition[i];
+					if (composition.length === i) return finish();
+					i++;
+					getTermWithHighestScore(
+						syllables.slice(start, start + numOfWord),
+						function (term) {
+							if (!term) return finish();
+							str.push(term);
+							start += numOfWord;
+							next();
+						}
+					);
+				},
+				finish = function () {
+					if (start === syllables.length) sentences.push(str); // complete; this composition does made up a sentence
+					n++;
+					if (n === (1 << (syllables.length - 1))) {
+						callback(sentences);
 					}
-				);
-				if (start !== syllables.length) return; // incomplete; this composition doesn't made up any sentences
-				sentences.push(str);
+				};
+				next();
 			}
 		);
-		return sentences;
 	},
 	/*
 	* With series of syllables, return the sentence with highest score
 	*
 	*/
-	getSentenceWithHighestScore = function (syllables) {
-		var sentences = getSentences(syllables), theSentence, theScore = -1;
-		if (!sentences) return false;
-		sentences.forEach(
-			function (sentence) {
-				var score = 0;
-				sentence.forEach(
-					function (term) {
-						if (term.t.length === 1) score += term.s / 512; // magic number from rule_largest_freqsum() in libchewing/src/tree.c
-						else score += term.s;
+	getSentenceWithHighestScore = function (syllables, callback) {
+		var theSentence, theScore = -1;
+		return getSentences(
+			syllables,
+			function (sentences) {
+				if (!sentences) return callback(false);
+				sentences.forEach(
+					function (sentence) {
+						var score = 0;
+						sentence.forEach(
+							function (term) {
+								if (term.t.length === 1) score += term.s / 512; // magic number from rule_largest_freqsum() in libchewing/src/tree.c
+								else score += term.s;
+							}
+						);
+						if (score >= theScore) {
+							theSentence = sentence;
+							theScore = score;
+						}
 					}
 				);
-				if (score >= theScore) {
-					theSentence = sentence;
-					theScore = score;
-				}
+				return callback(theSentence);
 			}
 		);
-		return theSentence;
+
 	},
 	/*
 	* Simple query function that works with tsi.json.js, return an array of objects representing all possible terms 
 	*
 	*/
-	getTerms = function (syllables) {
-		if (!tsi) {
+	getTerms = function (syllables, callback) {
+		if (!tsi && !db) {
 			console.log('JSZhuYing: database not ready.');
-			return false;
+			return callback(false);
 		}
-		return tsi[syllables.join('')] || false;
+		if (db) {
+			var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllables.join(''));
+			return req.onsuccess = function (ev) {
+				if (ev.target.result) return callback(ev.target.result.terms);
+				else return callback(false);
+			};
+		}
+		return callback(tsi[syllables.join('')] || false);
 	},
 	/*
 	* Return the term with the highest score
 	*
 	*/
-	getTermWithHighestScore = function (syllables) {
-		var terms = getTerms(syllables), theTerm = {s: -1, t: ''};
-		if (!terms) return false;
-		terms.forEach(
-			function (term) {
-				if (term.s > theTerm.s) {
-					theTerm = term;
-				}
+	getTermWithHighestScore = function (syllables, callback) {
+		return getTerms(
+			syllables,
+			function (terms) {
+				var theTerm = {s: -1, t: ''};
+				if (!terms) return callback(false);
+				terms.forEach(
+					function (term) {
+						if (term.s > theTerm.s) {
+							theTerm = term;
+						}
+					}
+				);
+				if (theTerm.s !== -1) return callback(theTerm);
+				else return callback(false);
 			}
 		);
-		if (theTerm.s !== -1) return theTerm;
-		else return false;
 	};
 	
 	init.call(this);

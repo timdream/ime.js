@@ -18,17 +18,35 @@ textarea {
 <script src="./jszhuying.js"></script>
 <script>
 
+function print () {
+	console.log.apply(this, arguments);
+}
+
 var jszhuying = JSZhuYing(
 	{
+//		disableIndexedDB: true,
+		progress: function (msg) {
+			jQuery('textarea').val(msg);
+		},
 		ready: function () {
 			jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
 /*			console.log('ready');
 			console.log(
+				'ㄐㄧㄣ',
+				//jszhuying.getTerms(['ㄐㄧㄣ'], print),
+				//jszhuying.getTermWithHighestScore(['ㄐㄧㄣ'], print),
+				jszhuying.getSentences(['ㄐㄧㄣ'], print)
+			);
+			console.log(
+				'ㄐㄧㄣㄊㄧㄢ',
+				jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ'], print)
+			);
+			console.log(
 				'ㄐㄧㄣㄊㄧㄢㄊㄧㄢㄑㄧˋㄏㄠˇ',
-				//jszhuying.getTerms(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ']),
-				jszhuying.getTermWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ']),
-				//jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ']),
-				jszhuying.getSentenceWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'])
+				jszhuying.getTerms(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
+				jszhuying.getTermWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
+				jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
+				jszhuying.getSentenceWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print)
 			);
 */
 		}
@@ -128,21 +146,32 @@ jQuery(function($) {
 			$syllables.removeClass('error');
 
 			if (symbolType[layout[chr]] === 'tone') {
-				if (jszhuying.getTerms([$syllables.text()])) {
-					syllablesInBuffer.push($syllables.text());
-					$syllables.children().text('');
-
-					$buffer.empty();
-					jszhuying.getSentenceWithHighestScore(syllablesInBuffer).forEach(
-						function (term) {
-							$buffer.append(
-								$('<span />').text(term.t)
-							);
+				jszhuying.getTerms(
+					[$syllables.text()],
+					function (terms) {
+						if (!terms) {
+							$syllables.addClass('error');
+							return;
 						}
-					);
-				} else {
-					$syllables.addClass('error');
-				}
+
+						syllablesInBuffer.push($syllables.text());
+						$syllables.children().text('');
+
+						jszhuying.getSentenceWithHighestScore(
+							syllablesInBuffer,
+							function (terms) {
+								$buffer.empty();
+								terms.forEach(
+									function (term) {
+										$buffer.append(
+											$('<span />').text(term.t)
+										);
+									}
+								);
+							}
+						);
+					}
+				);
 			}
 		}
 	);
