@@ -8,7 +8,7 @@
 var jszhuyingJS = JSZhuYing(
 	{
 		disableIndexedDB: true,
-		tsi: '../tsi.json.js',
+		data: '../data.json.js',
 		ready: function () {
 			$('#js').attr('disabled', false);
 			$('#js-result').text('ready');
@@ -17,6 +17,7 @@ var jszhuyingJS = JSZhuYing(
 ),
 jszhuyingIndexedDB = JSZhuYing(
 	{
+		data: '../data.json.js',
 		ready: function () {
 			$('#idb').attr('disabled', false);
 			$('#idb-result').text('ready');

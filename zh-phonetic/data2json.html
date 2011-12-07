@@ -1,0 +1,84 @@
+<p>tsi.src: <input type="file" /></p>
+<p>phone.cin: <input type="file" /></p>
+<p>Result: 
+<textarea readonly>
+</textarea></p>
+<button onclick="run()">Run</button>
+<script>
+'use stricts';
+
+const phone = {
+",":"ㄝ","-":"ㄦ",".":"ㄡ","/":"ㄥ","0":"ㄢ","1":"ㄅ","2":"ㄉ","3":"ˇ","4":"ˋ","5":"ㄓ","6":"ˊ","7":"˙","8":"ㄚ","9":"ㄞ",";":"ㄤ","a":"ㄇ","b":"ㄖ","c":"ㄏ",
+"d":"ㄎ","e":"ㄍ","f":"ㄑ","g":"ㄕ","h":"ㄘ","i":"ㄛ","j":"ㄨ","k":"ㄜ","l":"ㄠ","m":"ㄩ","n":"ㄙ","o":"ㄟ",
+"p":"ㄣ","q":"ㄆ","r":"ㄐ","s":"ㄋ","t":"ㄔ","u":"ㄧ","v":"ㄒ","w":"ㄊ","x":"ㄌ","y":"ㄗ","z":"ㄈ"
+};
+
+var result = {};
+
+function run() {
+	var textarea = document.getElementsByTagName('textarea')[0],
+	file_tsi = document.getElementsByTagName('input')[0],
+	file_phone = document.getElementsByTagName('input')[1],
+	reader_tsi = new FileReader(),
+	reader_phone = new FileReader();
+
+	reader_tsi.onloadend = function (ev) {
+		ev.target.result.split('\n').forEach(
+			function (line) {
+				var data = line.split(' ');
+				data[2] = data.slice(2).join('');
+				result[data[2]] = result[data[2]] || [];
+
+				if (!data[2] || !data[0]) return;
+
+				result[data[2]].push(
+					[ data[0], parseInt(data[1])]
+				);
+			}
+		);
+		reader_phone.readAsText(file_phone.files[0]);
+	};
+	reader_tsi.readAsText(file_tsi.files[0]);
+
+	reader_phone.onloadend = function (ev) {
+		ev.target.result.split('\n').forEach(
+			function (line) {
+				if (line[0] === '%') return;
+
+				var key = '', data = line.split(/ +/);
+
+				data[0].split('').forEach(
+					function (k) {
+						key += phone[k];
+					}
+				);
+
+				result[key] = result[key] || [];
+				if (
+					result[key].some(
+						function (term) {
+							if (term[0] === data[1]) return true;
+							return false;
+						}
+					)
+				) return;
+
+				if (!data[1] || !key) return;
+				result[key].push(
+					[ data[1], 0]
+				);
+			}
+		);
+		for (phone in result) if (result.hasOwnProperty(phone)) {
+			result[phone] = result[phone].sort(
+				function (a, b) {
+					return (b[1] - a[1]);
+				}
+			);
+		}
+		console.log(result);
+		//window.open('data:text/javascript,' + JSON.stringify(result)); // won't work
+		textarea.value = JSON.stringify(result);
+	};
+}
+</script>

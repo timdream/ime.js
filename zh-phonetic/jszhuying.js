@@ -17,7 +17,7 @@ var JSZhuYing = function (settings) {
 	if (typeof settings.ready !== 'function') settings.ready = function () {};
 
 	var version = '0.1',
-	tsi,
+	jsonData,
 	db,
 	init = function () {
 		var that = this;
@@ -45,10 +45,10 @@ var JSZhuYing = function (settings) {
 				req = transaction.objectStore('terms').count();
 				req.onsuccess = function (ev) {
 					if (req.result === 0) {
-						settings.progress.call(that, 'IndexedDB is supported but empty; Downloading JSON ...');
+						settings.progress.call(that, 'IndexedDB is supported but empty or need upgrade; Downloading JSON ...');
 						getTermsJSON(
 							function () {
-								if (!tsi) return;
+								if (!jsonData) return;
 								var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
 								store = transaction.objectStore('terms');
 
@@ -56,16 +56,16 @@ var JSZhuYing = function (settings) {
 									settings.ready.call(that);
 								};
 			
-								for (syllables in tsi) {
+								for (syllables in jsonData) {
 									store.add(
 										{
 											syllables: syllables,
-											terms: tsi[syllables]
+											terms: jsonData[syllables]
 										}
 									);
 								}
-								tsi = null;
-								delete tsi;
+								jsonData = null;
+								delete jsonData;
 							}
 						);
 						return;
@@ -82,7 +82,7 @@ var JSZhuYing = function (settings) {
 			callback();
 			return;
 		}
-		var req = mozIndexedDB.open('JSZhuYing', 1, 'JSZhuYing db');
+		var req = mozIndexedDB.open('JSZhuYing', 2, 'JSZhuYing db');
 		req.onerror = function () {
 			console.log('JSZhuYing: there is a problem with the database.');
 			callback();
@@ -90,6 +90,7 @@ var JSZhuYing = function (settings) {
 		req.onupgradeneeded = function (ev) {
 			//console.log('upgradeneeded; get db', req, req.result);
 			db = req.result;
+			if (db.objectStoreNames.length !== 0) db.deleteObjectStore('terms');
 			var store = db.createObjectStore(
 				'terms',
 				{
@@ -104,24 +105,25 @@ var JSZhuYing = function (settings) {
 		};
 	},
 	getTermsJSON = function (callback) {
-		// Get tsi.json.js
+		// Get data.json.js
 		// this is the database we need to get terms against.
-		// the JSON is converted from tsi.src in Chewing source code.
+		// the JSON is converted from tsi.src and phone.cin in Chewing source code.
 		// https://github.com/chewing/libchewing/blob/master/data/tsi.src
+		// https://github.com/chewing/libchewing/blob/master/data/phone.cin
 
 		var xhr = new XMLHttpRequest();
 		xhr.open(
 			'GET',
-			settings.tsi || './tsi.json.js',
+			settings.data || './data.json.js',
 			true
 		);
 		xhr.onreadystatechange = function (ev) {
 			if (xhr.readyState !== 4) return;
 			try {
-				tsi = JSON.parse(xhr.responseText);
+				jsonData = JSON.parse(xhr.responseText);
 			} catch (e) {}
-			if (!tsi) {
-				console.log('JSZhuYing: tsi.json.js failed to load.');
+			if (!jsonData) {
+				console.log('JSZhuYing: data.json.js failed to load.');
 			}
 			xhr.responseText = null;
 			delete xhr;
@@ -207,8 +209,8 @@ var JSZhuYing = function (settings) {
 						var score = 0;
 						sentence.forEach(
 							function (term) {
-								if (term.t.length === 1) score += term.s / 512; // magic number from rule_largest_freqsum() in libchewing/src/tree.c
-								else score += term.s;
+								if (term[0].length === 1) score += term[1] / 512; // magic number from rule_largest_freqsum() in libchewing/src/tree.c
+								else score += term[1];
 							}
 						);
 						if (score >= theScore) {
@@ -223,11 +225,11 @@ var JSZhuYing = function (settings) {
 
 	},
 	/*
-	* Simple query function that works with tsi.json.js, return an array of objects representing all possible terms 
+	* Simple query function that return an array of objects representing all possible terms 
 	*
 	*/
 	getTerms = function (syllables, callback) {
-		if (!tsi && !db) {
+		if (!jsonData && !db) {
 			console.log('JSZhuYing: database not ready.');
 			return callback(false);
 		}
@@ -238,7 +240,7 @@ var JSZhuYing = function (settings) {
 				else return callback(false);
 			};
 		}
-		return callback(tsi[syllables.join('')] || false);
+		return callback(jsonData[syllables.join('')] || false);
 	},
 	/*
 	* Return the term with the highest score
@@ -248,16 +250,16 @@ var JSZhuYing = function (settings) {
 		return getTerms(
 			syllables,
 			function (terms) {
-				var theTerm = {s: -1, t: ''};
+				var theTerm = ['', -1];
 				if (!terms) return callback(false);
 				terms.forEach(
 					function (term) {
-						if (term.s > theTerm.s) {
+						if (term[1] > theTerm[1]) {
 							theTerm = term;
 						}
 					}
 				);
-				if (theTerm.s !== -1) return callback(theTerm);
+				if (theTerm[1] !== -1) return callback(theTerm);
 				else return callback(false);
 			}
 		);
