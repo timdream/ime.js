@@ -1,0 +1,68 @@
+<ul>
+	<li><button id="js" disabled>test JS object</button> <span id="js-result"></span></li>
+	<li><button id="idb" disabled>test indexedDB</button> <span id="idb-result"></span></li>
+</ul>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script src="../jszhuying.js"></script>
+<script>
+var jszhuyingJS = JSZhuYing(
+	{
+		disableIndexedDB: true,
+		tsi: '../tsi.json.js',
+		ready: function () {
+			$('#js').attr('disabled', false);
+			$('#js-result').text('ready');
+		}
+	}
+),
+jszhuyingIndexedDB = JSZhuYing(
+	{
+		ready: function () {
+			$('#idb').attr('disabled', false);
+			$('#idb-result').text('ready');
+		}
+	}
+),
+iteration = 1E3; 
+
+$('#js').on(
+	'click',
+	function () {
+		var d = (new Date()).getTime(), i = iteration,
+		test = function () {
+			if (!i--) {
+				$('#js-result').text(
+					((new Date()).getTime() - d).toString(10) + 'ms'
+				);
+				return;
+			}
+			jszhuyingJS.getTerms(
+				['ㄐㄧㄣ'],
+				test
+			)
+		};
+		$('#js-result').text('start');
+		test();
+	}
+);
+$('#idb').on(
+	'click',
+	function () {
+		var d = (new Date()).getTime(), i = iteration,
+		test = function () {
+			if (!i--) {
+				$('#idb-result').text(
+					((new Date()).getTime() - d).toString(10) + 'ms'
+				);
+				return;
+			}
+			jszhuyingIndexedDB.getTerms(
+				['ㄐㄧㄣ'],
+				test
+			)
+		};
+		$('#idb-result').text('start');
+		test();
+	}
+);
+</script>
