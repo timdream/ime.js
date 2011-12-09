@@ -39,6 +39,7 @@ var JSZhuYing = function (settings) {
 							settings.ready.call(that);
 						}
 					);
+					return;
 				}
 
 				var transaction = db.transaction('terms'),
@@ -55,7 +56,7 @@ var JSZhuYing = function (settings) {
 								transaction.oncomplete = function () {
 									settings.ready.call(that);
 								};
-			
+
 								for (syllables in jsonData) {
 									store.add(
 										{
@@ -82,7 +83,7 @@ var JSZhuYing = function (settings) {
 			callback();
 			return;
 		}
-		var req = mozIndexedDB.open('JSZhuYing', 2, 'JSZhuYing db');
+		var req = mozIndexedDB.open('JSZhuYing', 3, 'JSZhuYing db');
 		req.onerror = function () {
 			console.log('JSZhuYing: there is a problem with the database.');
 			callback();
@@ -131,7 +132,7 @@ var JSZhuYing = function (settings) {
 			callback();
 		};
 		xhr.send(null);
-		
+
 	},
 	/*
 	* Math function that return all possibile compositions of a given natural number
@@ -158,7 +159,7 @@ var JSZhuYing = function (settings) {
 		}
 	},
 	/*
-	* With series of syllables, return an array of possible sentences 
+	* With series of syllables, return an array of possible sentences
 	*
 	*/
 	getSentences = function (syllables, callback) {
@@ -225,7 +226,7 @@ var JSZhuYing = function (settings) {
 
 	},
 	/*
-	* Simple query function that return an array of objects representing all possible terms 
+	* Simple query function that return an array of objects representing all possible terms
 	*
 	*/
 	getTerms = function (syllables, callback) {
@@ -264,7 +265,7 @@ var JSZhuYing = function (settings) {
 			}
 		);
 	};
-	
+
 	init.call(this);
 
 	return {

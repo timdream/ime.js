@@ -1,6 +1,6 @@
 <p>tsi.src: <input type="file" /></p>
 <p>phone.cin: <input type="file" /></p>
-<p>Result: 
+<p>Result:
 <textarea readonly>
 </textarea></p>
 <button onclick="run()">Run</button>
@@ -69,8 +69,8 @@ function run() {
 				);
 			}
 		);
-		for (phone in result) if (result.hasOwnProperty(phone)) {
-			result[phone] = result[phone].sort(
+		for (syllables in result) {
+			result[syllables] = result[syllables].sort(
 				function (a, b) {
 					return (b[1] - a[1]);
 				}
