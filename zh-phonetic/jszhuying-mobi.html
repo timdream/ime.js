@@ -14,6 +14,7 @@ textarea {
 <ol id="sel"></ol>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
 <script src="./jszhuying.js"></script>
+<script src="./mobi.js"></script>
 <script>
 
 function print () {
@@ -30,6 +31,29 @@ var jszhuying = JSZhuYing(
 			jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
 		}
 	}
+),
+mobi = JSZhuYing.Mobi(
+  {
+    sendChoices: function (choices) {
+      var $sel = jQuery('#sel').empty();
+      choices.forEach(
+        function (choice) {
+          $sel.append($('<li class="' + choice[1] + '" />').text(choice[0]));
+        }
+      );
+    },
+    sendString: function (str) {
+      jQuery('textarea')[0].value += str;
+    },
+    sendKey: function (code) {
+      var textarea = jQuery('textarea')[0];
+      if (code === 8) { // simulate backspace
+        textarea.value = textarea.value.substr(0, textarea.value.length - 1);
+      } else {
+        textarea.value += String.fromCharCode(code);
+      }
+    }
+  }
 ),
 layout = {
 	",":"ㄝ",
@@ -73,217 +97,28 @@ layout = {
 	"x":"ㄌ",
 	"y":"ㄗ",
 	"z":"ㄈ",
-	" ":""
-},
-symbolType = {
-	"ㄅ":"consonant","ㄆ":"consonant","ㄇ":"consonant","ㄈ":"consonant","ㄉ":"consonant","ㄊ":"consonant","ㄋ":"consonant","ㄌ":"consonant","ㄍ":"consonant","ㄎ":"consonant","ㄏ":"consonant","ㄐ":"consonant","ㄑ":"consonant","ㄒ":"consonant","ㄓ":"consonant","ㄔ":"consonant","ㄕ":"consonant","ㄖ":"consonant","ㄗ":"consonant","ㄘ":"consonant","ㄙ":"consonant",
-	"ㄧ":"vowel1","ㄨ":"vowel1","ㄩ":"vowel1",
-	"ㄚ":"vowel2","ㄛ":"vowel2","ㄜ":"vowel2","ㄝ":"vowel2","ㄞ":"vowel2","ㄟ":"vowel2","ㄠ":"vowel2","ㄡ":"vowel2","ㄢ":"vowel2","ㄣ":"vowel2","ㄤ":"vowel2","ㄥ":"vowel2","ㄦ":"vowel2",
-	"":"tone","˙":"tone","ˊ":"tone","ˇ":"tone","ˋ":"tone"
-},
-symbolPlace = {
-  "consonant":0,
-  "vowel1":1,
-  "vowel2":2,
-  "tone":3
-},
-syllablesInBuffer = [''],
-pendingSyllable = ['','','',''],
-getChoices = function (syllables, type, callback) {
-  var choices = [];
-  switch (type) {
-    case 'sentence':
-      jszhuying.getSentences(
-        syllables,
-        function (sentences) {
-          if (!sentences) return callback([]);
-          sentences.forEach(
-            function (sentence) {
-              var str = '';
-              sentence.forEach(
-                function (term) {
-                  str += term[0];
-                }
-              );
-              if (choices.indexOf(str) === -1) choices.push(str);
-            }
-          );
-          callback(choices);
-        }
-      );
-    break;
-    case 'term':
-      jszhuying.getTerms(
-        syllables,
-        function (terms) {
-          if (!terms) return callback([]);
-          terms.forEach(
-            function (term) {
-              choices.push(term[0]);
-            }
-          );
-          callback(choices);
-        }
-      );
-    break;
-  }
+	" ":" "
 };
 
 jQuery(function($) {
-	var keypressQueue = [],
-  isWorking = false,
-  queue = function (code) {
-    keypressQueue.push(code);
-    if (!isWorking) {
-      isWorking = true;
-      next();
-    }
-  },
-  textarea = $('textarea')[0],
-  next = function () {
-    if (!keypressQueue.length) {
-      isWorking = false;
-      return;
-    }
-    keypressed.call(
-      textarea,
-      keypressQueue.shift(),
-      next
-    );
-  },
-  $sel = $('#sel'),
-	showChoices = function (choices, type) {
-    choices.forEach(
-      function (choice) {
-        $sel.append($('<li class="' + type + '" />').text(choice));
-      }
-    );
-	},
-	removeChoices = function () {
-	  $sel.empty();
-	},
-	select = function (callback) {
-    var wholeSyllablesChoices = [];
-    getChoices(
-      syllablesInBuffer,
-      'term',
-      function (choices) {
-        if (syllablesInBuffer.length === 1) {
-          removeChoices();
-          showChoices(choices, 'whole');
-          return callback();
-        }
-        wholeSyllablesChoices = choices;
-        getChoices(
-          syllablesInBuffer,
-          'sentence',
-          function (choices) {
-            choices.forEach(
-              function (choice) {
-                if (wholeSyllablesChoices.indexOf(choice) === -1) wholeSyllablesChoices.push(choice);
-              }
-            );
-            removeChoices();
-            if (wholeSyllablesChoices.length) showChoices(wholeSyllablesChoices, 'whole');
-            else showChoices([syllablesInBuffer.join('')]);
-
-            var i = Math.min(8, syllablesInBuffer.length - 1),
-            findTerms = function () {
-              getChoices(
-                syllablesInBuffer.slice(0, i),
-                'term',
-                function (choices) {
-                  showChoices(choices, 'term');
-                  i--;
-                  if (i) findTerms();
-                  else return callback();
-                }
-              );
-            };
-            findTerms();
-          }
-        );
-      }
-    );
-  },
-  keypressed = function (code, callback) {
-    if (code === 13) { // enter
-      if (
-        syllablesInBuffer.length === 1
-        && syllablesInBuffer[0] === ''
-      ) {
-        this.value += '\n'; // default action
-      }
-      this.value += $sel.children(':first').text();
-      removeChoices();
-      syllablesInBuffer = [''];
-      pendingSyllable = ['','','',''];
-      return callback();
-    }
-
-    if (code === 8) { // backspace
-      if (
-        syllablesInBuffer.length === 1
-        && syllablesInBuffer[0] === ''
-      ) {
-        this.value = this.value.substr(0, this.value.length - 1); // default action
-        return callback();
-      }
-      if (
-        !pendingSyllable.some(function (s) { return !!s; })
-      ) {
-        syllablesInBuffer = syllablesInBuffer.slice(0, syllablesInBuffer.length-1);
-        syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
-        return select(callback);
-      }
-      pendingSyllable = ['','','',''];
-      syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
-      return select(callback);
-    }
-
-    var chr = String.fromCharCode(code);
-    if (!(chr in layout)) return callback();
-
-    pendingSyllable[symbolPlace[symbolType[layout[chr]]]] = layout[chr];
-    syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
-
-    //console.log(syllablesInBuffer.length, syllablesInBuffer);
-
-    select(
-      function () {
-        if (symbolType[layout[chr]] === 'tone') {
-          // start syllables for next character
-          syllablesInBuffer.push('');
-          pendingSyllable = ['','','',''];
-        }
-        callback();
-      }
-    );
-  };
-
-  $sel.on(
+  $('#sel').on(
     'click',
     'li.whole',
     function () {
-      $('textarea')[0].value += $(this).text();
-      removeChoices();
-      syllablesInBuffer = [''];
-      pendingSyllable = ['','','',''];
+      mobi.select(
+        $(this).text(),
+        'whole'
+      );
       $('textarea').focus();
     }
-  );
-
-  $sel.on(
+  ).on(
     'click',
     'li.term',
     function () {
-      $('textarea')[0].value += $(this).text();
-      var i = $(this).text().length;
-      while (i--) {
-        syllablesInBuffer.shift();
-      }
-      removeChoices();
-      select(function () {});
+      mobi.select(
+        $(this).text(),
+        'term'
+      );
       $('textarea').focus();
     }
   );
@@ -294,8 +129,13 @@ jQuery(function($) {
 			if (ev.altKey || ev.metaKey || ev.shiftKey) return;
 
   		ev.preventDefault();
-      queue(ev.keyCode || ev.charCode);
 
+      var code = ev.keyCode || ev.charCode,
+      chr = String.fromCharCode(code);
+
+      if (chr in layout) code = layout[chr].charCodeAt(0);
+
+      mobi.keypress(code);
 		}
 	);
 });
