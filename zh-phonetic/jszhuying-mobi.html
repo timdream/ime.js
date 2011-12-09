@@ -130,7 +130,28 @@ getChoices = function (syllables, type, callback) {
 };
 
 jQuery(function($) {
-	var $sel = $('#sel'),
+	var keypressQueue = [],
+  isWorking = false,
+  queue = function (code) {
+    keypressQueue.push(code);
+    if (!isWorking) {
+      isWorking = true;
+      next();
+    }
+  },
+  textarea = $('textarea')[0],
+  next = function () {
+    if (!keypressQueue.length) {
+      isWorking = false;
+      return;
+    }
+    keypressed.call(
+      textarea,
+      keypressQueue.shift(),
+      next
+    );
+  },
+  $sel = $('#sel'),
 	showChoices = function (choices, type) {
     choices.forEach(
       function (choice) {
@@ -141,16 +162,16 @@ jQuery(function($) {
 	removeChoices = function () {
 	  $sel.empty();
 	},
-	select = function () {
+	select = function (callback) {
     var wholeSyllablesChoices = [];
     getChoices(
       syllablesInBuffer,
       'term',
       function (choices) {
         if (syllablesInBuffer.length === 1) {
-            removeChoices();
-            showChoices(choices, 'whole');
-            return;
+          removeChoices();
+          showChoices(choices, 'whole');
+          return callback();
         }
         wholeSyllablesChoices = choices;
         getChoices(
@@ -175,12 +196,67 @@ jQuery(function($) {
                   showChoices(choices, 'term');
                   i--;
                   if (i) findTerms();
+                  else return callback();
                 }
               );
             };
             findTerms();
           }
         );
+      }
+    );
+  },
+  keypressed = function (code, callback) {
+    if (code === 13) { // enter
+      if (
+        syllablesInBuffer.length === 1
+        && syllablesInBuffer[0] === ''
+      ) {
+        this.value += '\n'; // default action
+      }
+      this.value += $sel.children(':first').text();
+      removeChoices();
+      syllablesInBuffer = [''];
+      pendingSyllable = ['','','',''];
+      return callback();
+    }
+
+    if (code === 8) { // backspace
+      if (
+        syllablesInBuffer.length === 1
+        && syllablesInBuffer[0] === ''
+      ) {
+        this.value = this.value.substr(0, this.value.length - 1); // default action
+        return callback();
+      }
+      if (
+        !pendingSyllable.some(function (s) { return !!s; })
+      ) {
+        syllablesInBuffer = syllablesInBuffer.slice(0, syllablesInBuffer.length-1);
+        syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
+        return select(callback);
+      }
+      pendingSyllable = ['','','',''];
+      syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
+      return select(callback);
+    }
+
+    var chr = String.fromCharCode(code);
+    if (!(chr in layout)) return callback();
+
+    pendingSyllable[symbolPlace[symbolType[layout[chr]]]] = layout[chr];
+    syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
+
+    //console.log(syllablesInBuffer.length, syllablesInBuffer);
+
+    select(
+      function () {
+        if (symbolType[layout[chr]] === 'tone') {
+          // start syllables for next character
+          syllablesInBuffer.push('');
+          pendingSyllable = ['','','',''];
+        }
+        callback();
       }
     );
   };
@@ -207,7 +283,7 @@ jQuery(function($) {
         syllablesInBuffer.shift();
       }
       removeChoices();
-      select();
+      select(function () {});
       $('textarea').focus();
     }
   );
@@ -218,59 +294,8 @@ jQuery(function($) {
 			if (ev.altKey || ev.metaKey || ev.shiftKey) return;
 
   		ev.preventDefault();
-      // TBD: move everything to async below
+      queue(ev.keyCode || ev.charCode);
 
-			if (ev.keyCode === 13) { // enter
-        if (
-          syllablesInBuffer.length === 1
-          && syllablesInBuffer[0] === ''
-        ) {
-          this.value += '\n'; // default action
-        }
-			  this.value += $sel.children(':first').text();
-				removeChoices();
-        syllablesInBuffer = [''];
-        pendingSyllable = ['','','',''];
-				return;
-			}
-
-      if (ev.keyCode === 8) { // backspace
-        if (
-          syllablesInBuffer.length === 1
-          && syllablesInBuffer[0] === ''
-        ) {
-          this.value = this.value.substr(0, this.value.length - 1); // default action
-          return;
-        }
-        if (
-          !pendingSyllable.some(function (s) { return !!s; })
-        ) {
-          syllablesInBuffer = syllablesInBuffer.slice(0, syllablesInBuffer.length-1);
-          syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
-  				select();
-  				return;
-        }
-        pendingSyllable = ['','','',''];
-        syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
-        select();
-        return;
-      }
-
-			var chr = String.fromCharCode(ev.charCode);
-			if (!(chr in layout)) return;
-
-      pendingSyllable[symbolPlace[symbolType[layout[chr]]]] = layout[chr];
-      syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
-
-      //console.log(syllablesInBuffer.length, syllablesInBuffer);
-
-      select();
-
-			if (symbolType[layout[chr]] === 'tone') {
-		  	// start syllables for next character
-        syllablesInBuffer.push('');
-        pendingSyllable = ['','','',''];
-			}
 		}
 	);
 });
