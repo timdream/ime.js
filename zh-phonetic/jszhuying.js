@@ -79,7 +79,7 @@ var JSZhuYing = function (settings) {
 		);
 	},
 	getTermsInDB = function (callback) {
-		if (!mozIndexedDB || window.location.protocol === 'file:') {
+		if (!window.mozIndexedDB || window.location.protocol === 'file:') {
 			callback();
 			return;
 		}
