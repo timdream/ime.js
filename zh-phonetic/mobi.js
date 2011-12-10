@@ -158,23 +158,42 @@ JSZhuYing.Mobi = function (settings) {
       }
     );
   },
+  getFirstChoice = function (callback) {
+    getChoices(
+      syllablesInBuffer,
+      'term',
+      function (choices) {
+        if (choices[0]) return callback(choices[0]);
+        getChoices(
+          syllablesInBuffer,
+          'sentence',
+          function (choices) {
+            if (choices[0]) return callback(choices[0]);
+            else return callback(syllablesInBuffer.join(''));
+          }
+        );
+      }
+    );
+  },
   keypressed = function (code, callback) {
     if (code === 13) { // enter
       if (
-        !settings.blockingEnterKey
-        || (
-          syllablesInBuffer.length === 1
-          && syllablesInBuffer[0] === ''
-        )
+        syllablesInBuffer.length === 1
+        && syllablesInBuffer[0] === ''
       ) {
         settings.sendKey(13); // default action
-        return;
+        return callback();
       }
-      settings.sendString(syllablesInBuffer.join(''));
-      settings.sendChoices([]);
-      syllablesInBuffer = [''];
-      pendingSyllable = ['','','',''];
-      return callback();
+      getFirstChoice(
+        function (sentense) {
+          settings.sendString(sentense);
+          settings.sendChoices([]);
+          syllablesInBuffer = [''];
+          pendingSyllable = ['','','',''];
+          return callback();
+        }
+      );
+      return;
     }
 
     if (code === 8) { // backspace
