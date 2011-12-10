@@ -18,6 +18,8 @@ var JSZhuYing = function (settings) {
 
 	var version = '0.1',
 	jsonData,
+	cache = {},
+	cacheTimer,
 	db,
 	init = function () {
 		var that = this;
@@ -188,6 +190,7 @@ var JSZhuYing = function (settings) {
 					if (start === syllables.length) sentences.push(str); // complete; this composition does made up a sentence
 					n++;
 					if (n === (1 << (syllables.length - 1))) {
+						cleanCache();
 						callback(sentences);
 					}
 				};
@@ -235,10 +238,17 @@ var JSZhuYing = function (settings) {
 			return callback(false);
 		}
 		if (db) {
+			if (typeof cache[syllables.join('')] !== 'undefined') return callback(cache[syllables.join('')]);
 			var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllables.join(''));
 			return req.onsuccess = function (ev) {
-				if (ev.target.result) return callback(ev.target.result.terms);
-				else return callback(false);
+				cleanCache();
+				if (ev.target.result) {
+					cache[syllables.join('')] = ev.target.result.terms;
+					return callback(ev.target.result.terms);
+				} else {
+					cache[syllables.join('')] = false;
+					return callback(false);
+				}
 			};
 		}
 		return callback(jsonData[syllables.join('')] || false);
@@ -263,6 +273,15 @@ var JSZhuYing = function (settings) {
 				if (theTerm[1] !== -1) return callback(theTerm);
 				else return callback(false);
 			}
+		);
+	},
+	cleanCache = function () {
+		clearTimeout(cacheTimer);
+		cacheTimer = setTimeout(
+			function () {
+				cache = {};
+			},
+			4000
 		);
 	};
 
