@@ -223,6 +223,46 @@ JSZhuYing.Mobi = function (settings) {
 
     syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
 
+    if (
+      symbolType[symbol] === 'tone'
+      && syllablesInBuffer.length >= (settings.bufferLimit || 10)
+    ) {
+      var i = syllablesInBuffer.length,
+      findTerms = function () {
+        getChoices(
+          syllablesInBuffer.slice(0, i),
+          'term',
+          function (choices) {
+            if (choices[0] || i === 1) {
+              settings.sendString(
+                choices[0] || syllablesInBuffer.slice(0, i).join('')
+              );
+              while (i--) {
+                syllablesInBuffer.shift();
+              }
+              if (!syllablesInBuffer.length) {
+                syllablesInBuffer = [''];
+                pendingSyllable = ['','','',''];
+              }
+              return findChoices(
+                function () {
+                  if (symbolType[symbol] === 'tone') {
+                    // start syllables for next character
+                    syllablesInBuffer.push('');
+                    pendingSyllable = ['','','',''];
+                  }
+                  return callback();
+                }
+              );
+            }
+            i--;
+            return findTerms();
+          }
+        );
+      };
+      return findTerms();
+    }
+
     findChoices(
       function () {
         if (symbolType[symbol] === 'tone') {
@@ -239,6 +279,13 @@ JSZhuYing.Mobi = function (settings) {
   pendingSyllable = ['','','',''],
   keypressQueue = [],
   isWorking = false;
+
+  if (!settings) settings = {};
+  ['sendString', 'sendChoices', 'sendKey'].forEach(
+    function (functionName) {
+      if (!settings[functionName]) settings[functionName] = function () {};
+    }
+  );
 
   return {
     keypress: queue,
