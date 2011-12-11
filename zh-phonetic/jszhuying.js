@@ -85,7 +85,7 @@ var JSZhuYing = function (settings) {
 			callback();
 			return;
 		}
-		var req = mozIndexedDB.open('JSZhuYing', 3, 'JSZhuYing db');
+		var req = mozIndexedDB.open('JSZhuYing', 4, 'JSZhuYing db');
 		req.onerror = function () {
 			console.log('JSZhuYing: there is a problem with the database.');
 			callback();

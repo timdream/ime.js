@@ -92,13 +92,16 @@ JSZhuYing.Mobi = function (settings) {
     );
   },
   findChoices = function (callback) {
-    var allChoices = [];
+    var allChoices = [], syllablesForQuery = [].concat(syllablesInBuffer);
+    if (pendingSyllable[3] === '' && syllablesForQuery[syllablesForQuery.length - 1]) {
+      syllablesForQuery[syllablesForQuery.length - 1] = pendingSyllable.join('') + ' ';
+    }
     if (!syllablesInBuffer.join('').length) {
       settings.sendChoices(allChoices);
       return callback();
     }
     getChoices(
-      syllablesInBuffer,
+      syllablesForQuery,
       'term',
       function (choices) {
         choices.forEach(
@@ -115,7 +118,7 @@ JSZhuYing.Mobi = function (settings) {
           return callback();
         }
         getChoices(
-          syllablesInBuffer,
+          syllablesForQuery,
           'sentence',
           function (choices) {
             choices.forEach(
@@ -135,7 +138,7 @@ JSZhuYing.Mobi = function (settings) {
             var i = Math.min(8, syllablesInBuffer.length - 1),
             findTerms = function () {
               getChoices(
-                syllablesInBuffer.slice(0, i),
+                syllablesForQuery.slice(0, i),
                 'term',
                 function (choices) {
                   choices.forEach(
@@ -159,13 +162,17 @@ JSZhuYing.Mobi = function (settings) {
     );
   },
   getFirstChoice = function (callback) {
+    var syllablesForQuery = [].concat(syllablesInBuffer);
+    if (pendingSyllable[3] === '' && syllablesForQuery[syllablesForQuery.length - 1]) {
+      syllablesForQuery[syllablesForQuery.length - 1] = pendingSyllable.join('') + ' ';
+    }
     getChoices(
-      syllablesInBuffer,
+      syllablesForQuery,
       'term',
       function (choices) {
         if (choices[0]) return callback(choices[0]);
         getChoices(
-          syllablesInBuffer,
+          syllablesForQuery,
           'sentence',
           function (choices) {
             if (choices[0]) return callback(choices[0]);
@@ -219,7 +226,7 @@ JSZhuYing.Mobi = function (settings) {
     var symbol = String.fromCharCode(code);
     if (!symbolType[symbol]) return callback();
 
-    if (symbol !== " ") pendingSyllable[symbolPlace[symbolType[symbol]]] = symbol;
+    pendingSyllable[symbolPlace[symbolType[symbol]]] = symbol;
 
     syllablesInBuffer[syllablesInBuffer.length-1] = pendingSyllable.join('');
 
@@ -227,7 +234,7 @@ JSZhuYing.Mobi = function (settings) {
       symbolType[symbol] === 'tone'
       && syllablesInBuffer.length >= (settings.bufferLimit || 10)
     ) {
-      var i = syllablesInBuffer.length,
+      var i = syllablesInBuffer.length - 1,
       findTerms = function () {
         getChoices(
           syllablesInBuffer.slice(0, i),
