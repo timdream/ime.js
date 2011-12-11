@@ -26,7 +26,13 @@ function run() {
 		ev.target.result.split('\n').forEach(
 			function (line) {
 				var data = line.split(' ');
+				data.slice(2).forEach(
+				  function (syllable, i) {
+				    if (!/[ˊˇˋ˙]$/.test(syllable)) data[i+2] += ' ';
+				  }
+				);
 				data[2] = data.slice(2).join('');
+
 				result[data[2]] = result[data[2]] || [];
 
 				if (!data[2] || !data[0]) return;
@@ -53,6 +59,8 @@ function run() {
 					}
 				);
 
+        if (!/[ˊˇˋ˙]$/.test(key)) key += ' ';
+
 				result[key] = result[key] || [];
 				if (
 					result[key].some(
@@ -78,7 +86,7 @@ function run() {
 		}
 		console.log(result);
 		//window.open('data:text/javascript,' + JSON.stringify(result)); // won't work
-		textarea.value = JSON.stringify(result);
+		textarea.value = JSON.stringify(result).replace(/\],/g, '],\n');
 	};
 }
 </script>
