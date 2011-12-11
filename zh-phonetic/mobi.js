@@ -98,6 +98,7 @@ JSZhuYing.Mobi = function (settings) {
     }
     if (!syllablesInBuffer.join('').length) {
       settings.sendChoices(allChoices);
+      firstChoice = '';
       return callback();
     }
     getChoices(
@@ -111,10 +112,12 @@ JSZhuYing.Mobi = function (settings) {
         );
         if (syllablesInBuffer.length === 1 && allChoices.length) {
           settings.sendChoices(allChoices);
+          firstChoice = allChoices[0][0];
           return callback();
         } else if (syllablesInBuffer.length === 1) {
           allChoices.push([syllablesInBuffer.join(''), 'whole']);
           settings.sendChoices(allChoices);
+          firstChoice = allChoices[0][0];
           return callback();
         }
         getChoices(
@@ -134,6 +137,7 @@ JSZhuYing.Mobi = function (settings) {
             );
 
             if (!allChoices.length) allChoices.push([syllablesInBuffer.join(''), 'whole']);
+            firstChoice = allChoices[0][0];
 
             var i = Math.min(8, syllablesInBuffer.length - 1),
             findTerms = function () {
@@ -161,27 +165,6 @@ JSZhuYing.Mobi = function (settings) {
       }
     );
   },
-  getFirstChoice = function (callback) {
-    var syllablesForQuery = [].concat(syllablesInBuffer);
-    if (pendingSyllable[3] === '' && syllablesForQuery[syllablesForQuery.length - 1]) {
-      syllablesForQuery[syllablesForQuery.length - 1] = pendingSyllable.join('') + ' ';
-    }
-    getChoices(
-      syllablesForQuery,
-      'term',
-      function (choices) {
-        if (choices[0]) return callback(choices[0]);
-        getChoices(
-          syllablesForQuery,
-          'sentence',
-          function (choices) {
-            if (choices[0]) return callback(choices[0]);
-            else return callback(syllablesInBuffer.join(''));
-          }
-        );
-      }
-    );
-  },
   keypressed = function (code, callback) {
     if (code === 13) { // enter
       if (
@@ -191,16 +174,11 @@ JSZhuYing.Mobi = function (settings) {
         settings.sendKey(13); // default action
         return callback();
       }
-      getFirstChoice(
-        function (sentense) {
-          settings.sendString(sentense);
-          settings.sendChoices([]);
-          syllablesInBuffer = [''];
-          pendingSyllable = ['','','',''];
-          return callback();
-        }
-      );
-      return;
+      settings.sendString(firstChoice);
+      settings.sendChoices([]);
+      syllablesInBuffer = [''];
+      pendingSyllable = ['','','',''];
+      return callback();
     }
 
     if (code === 8) { // backspace
@@ -284,6 +262,7 @@ JSZhuYing.Mobi = function (settings) {
 
   var syllablesInBuffer = [''],
   pendingSyllable = ['','','',''],
+  forstChoice = '',
   keypressQueue = [],
   isWorking = false;
 
