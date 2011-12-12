@@ -264,7 +264,8 @@ JSZhuYing.Mobi = function (settings) {
   pendingSyllable = ['','','',''],
   forstChoice = '',
   keypressQueue = [],
-  isWorking = false;
+  isWorking = false,
+  jszhuying = JSZhuYing(settings.dbOptions);
 
   if (!settings) settings = {};
   ['sendString', 'sendChoices', 'sendKey'].forEach(

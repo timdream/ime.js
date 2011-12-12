@@ -21,19 +21,17 @@ function print () {
 	console.log.apply(this, arguments);
 }
 
-var jszhuying = JSZhuYing(
-	{
-//		disableIndexedDB: true,
-		progress: function (msg) {
-			jQuery('textarea').val(msg);
-		},
-		ready: function () {
-			jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
-		}
-	}
-),
-mobi = JSZhuYing.Mobi(
+var mobi = JSZhuYing.Mobi(
   {
+    dbOptions: {
+  //		disableIndexedDB: true,
+      progress: function (msg) {
+        jQuery('textarea').val(msg);
+      },
+      ready: function () {
+        jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
+      }
+    },
     sendChoices: function (choices) {
       var $sel = jQuery('#sel').empty();
       choices.forEach(
