@@ -424,6 +424,11 @@ JSZhuYing.Mobi = function (settings) {
       break;
     }
   },
+  empty = function () {
+    syllablesInBuffer = [''];
+    pendingSyllable = ['','','',''];
+    firstChoice = '';
+  },
   queue = function (code) {
     keypressQueue.push(code);
     if (!isWorking) {
@@ -638,8 +643,8 @@ JSZhuYing.Mobi = function (settings) {
 
   return {
     keypress: queue,
-    select: select
+    select: select,
+    empty: empty
   }
 
 };
-
