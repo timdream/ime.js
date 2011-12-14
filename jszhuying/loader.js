@@ -624,7 +624,7 @@ JSZhuYing.Mobi = function (settings) {
 
   var syllablesInBuffer = [''],
   pendingSyllable = ['','','',''],
-  forstChoice = '',
+  firstChoice = '',
   keypressQueue = [],
   isWorking = false,
   jszhuying = JSZhuYing(settings.dbOptions);
