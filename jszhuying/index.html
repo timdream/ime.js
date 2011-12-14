@@ -10,50 +10,22 @@ textarea {
   padding: 0 0.2em;
 }
 </style>
-<textarea id="result" rows="10" cols="60" disabled>Loading ...</textarea>
+<textarea id="result" rows="10" cols="60" autofocus></textarea>
 <ul id="sel"></ul>
+<p id="dump"></p>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
-<script src="./jszhuying.js"></script>
-<script src="./mobi.js"></script>
 <script>
 
 function print () {
   console.log.apply(this, arguments);
 }
 
-var mobi = JSZhuYing.Mobi(
-  {
-    dbOptions: {
-  //    disableIndexedDB: true,
-      progress: function (msg) {
-        jQuery('textarea').val(msg);
-      },
-      ready: function () {
-        jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
-      }
-    },
-    sendChoices: function (choices) {
-      var $sel = jQuery('#sel').empty();
-      choices.forEach(
-        function (choice) {
-          $sel.append($('<li class="' + choice[1] + '" />').text(choice[0]));
-        }
-      );
-    },
-    sendString: function (str) {
-      jQuery('textarea')[0].value += str;
-    },
-    sendKey: function (code) {
-      var textarea = jQuery('textarea')[0];
-      if (code === 8) { // simulate backspace
-        textarea.value = textarea.value.substr(0, textarea.value.length - 1);
-      } else {
-        textarea.value += String.fromCharCode(code);
-      }
-    }
-  }
-),
-layout = {
+function dump (str) {
+  jQuery('#dump').text(str);
+  console.log(str);
+}
+
+var layout = {
   ",":"ㄝ",
   "-":"ㄦ",
   ".":"ㄡ",
@@ -103,7 +75,7 @@ jQuery(function($) {
     'click',
     'li.whole',
     function () {
-      mobi.select(
+      IMEManager.IMEngines.jszhuying.select(
         $(this).text(),
         'whole'
       );
@@ -113,7 +85,7 @@ jQuery(function($) {
     'click',
     'li.term',
     function () {
-      mobi.select(
+      IMEManager.IMEngines.jszhuying.select(
         $(this).text(),
         'term'
       );
@@ -133,8 +105,49 @@ jQuery(function($) {
 
       if (chr in layout) code = layout[chr].charCodeAt(0);
 
-      mobi.keypress(code);
+      IMEManager.IMEngines.jszhuying.click(code);
     }
   );
 });
+
+var IMEManager = {
+  IMEngines: {},
+  init: function () {
+    var script = document.createElement('script'),
+    imEngine = 'jszhuying';
+
+    script.addEventListener(
+      'load',
+      function () {
+        IMEManager.IMEngines[imEngine].init(
+          './',
+          function sendChoices(choices) {
+            var $sel = jQuery('#sel').empty();
+            choices.forEach(
+              function (choice) {
+                $sel.append($('<li class="' + choice[1] + '" />').text(choice[0]));
+              }
+            );
+          },
+          function sendKey(code) {
+            var textarea = jQuery('textarea')[0];
+            if (code === 8) { // simulate backspace
+              textarea.value = textarea.value.substr(0, textarea.value.length - 1);
+            } else {
+              textarea.value += String.fromCharCode(code);
+            }
+          },
+          function sendString(str) {
+            jQuery('textarea')[0].value += str;
+          }
+        );
+      }
+    );
+    script.src = './loader.js';
+    document.body.appendChild(script);
+  }
+};
+
+IMEManager.init();
+
 </script>
