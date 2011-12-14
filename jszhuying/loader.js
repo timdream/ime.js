@@ -71,12 +71,12 @@ IMEManager.IMEngines.jszhuying = {
 };
 
 var JSZhuYing = function (settings) {
-
   settings = settings || {};
   if (typeof settings.progress !== 'function') settings.progress = function () {};
   if (typeof settings.ready !== 'function') settings.ready = function () {};
 
   var version = '0.1',
+  dbName = 'JSZhuYing',
   jsonData,
   cache = {},
   cacheTimer,
@@ -103,40 +103,25 @@ var JSZhuYing = function (settings) {
           );
           return;
         }
-
         var transaction = db.transaction('terms'),
         req = transaction.objectStore('terms').count();
         req.onsuccess = function (ev) {
-          if (req.result === 0) {
-            settings.progress.call(that, 'IndexedDB is supported but empty or need upgrade; Downloading JSON ...');
-            getTermsJSON(
-              function () {
-                if (!jsonData) return;
-                var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
-                store = transaction.objectStore('terms');
-
-                transaction.oncomplete = function () {
-                  settings.ready.call(that);
-                };
-
-                for (syllables in jsonData) {
-                  store.add(
-                    {
-                      syllables: syllables,
-                      terms: jsonData[syllables]
-                    }
-                  );
-                }
-                jsonData = null;
-                delete jsonData;
-              }
-            );
-            return;
+          if (req.result !== 0) {
+            settings.ready.call(that);
           }
-          // db is ready
-          //settings.progress.call(that, 'IndexedDB loaded: ' + req.result.toString(10) + ' entries.');
-          settings.ready.call(that);
-        };
+          settings.progress.call(that, 'IndexedDB is supported but empty or need upgrade; Downloading JSON ...');
+          getTermsJSON(
+            function () {
+              if (!jsonData) return;
+              settings.progress.call(that, 'JSON downloaded, inserting data into db ...');
+              populateDBFromJSON(
+                function () {
+                  settings.ready.call(that);
+                }
+              );
+            }
+          );
+        }
       }
     );
   },
@@ -145,7 +130,7 @@ var JSZhuYing = function (settings) {
       callback();
       return;
     }
-    var req = mozIndexedDB.open('JSZhuYing', 4, 'JSZhuYing db');
+    var req = mozIndexedDB.open(dbName, 4, 'JSZhuYing db');
     req.onerror = function () {
       dump('JSZhuYing: there is a problem with the database.');
       callback();
@@ -166,6 +151,25 @@ var JSZhuYing = function (settings) {
       db = req.result;
       callback();
     };
+  },
+  populateDBFromJSON = function (callback) {
+    var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
+    store = transaction.objectStore('terms');
+
+    transaction.oncomplete = function () {
+      callback();
+    };
+
+    for (syllables in jsonData) {
+      store.add(
+        {
+          syllables: syllables,
+          terms: jsonData[syllables]
+        }
+      );
+    }
+    jsonData = null;
+    delete jsonData;
   },
   getTermsJSON = function (callback) {
     // Get data.json.js
