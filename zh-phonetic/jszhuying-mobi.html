@@ -1,13 +1,13 @@
 <style>
 textarea {
-	width: 100%;
+  width: 100%;
 }
 .error {
-	color: red;
+  color: red;
 }
 #buffer span {
-	text-decoration: underline;
-	padding: 0 0.2em;
+  text-decoration: underline;
+  padding: 0 0.2em;
 }
 </style>
 <textarea id="result" rows="10" cols="60" disabled>Loading ...</textarea>
@@ -18,13 +18,13 @@ textarea {
 <script>
 
 function print () {
-	console.log.apply(this, arguments);
+  console.log.apply(this, arguments);
 }
 
 var mobi = JSZhuYing.Mobi(
   {
     dbOptions: {
-  //		disableIndexedDB: true,
+  //    disableIndexedDB: true,
       progress: function (msg) {
         jQuery('textarea').val(msg);
       },
@@ -54,48 +54,48 @@ var mobi = JSZhuYing.Mobi(
   }
 ),
 layout = {
-	",":"ㄝ",
-	"-":"ㄦ",
-	".":"ㄡ",
-	"/":"ㄥ",
-	"0":"ㄢ",
-	"1":"ㄅ",
-	"2":"ㄉ",
-	"3":"ˇ",
-	"4":"ˋ",
-	"5":"ㄓ",
-	"6":"ˊ",
-	"7":"˙",
-	"8":"ㄚ",
-	"9":"ㄞ",
-	";":"ㄤ",
-	"a":"ㄇ",
-	"b":"ㄖ",
-	"c":"ㄏ",
-	"d":"ㄎ",
-	"e":"ㄍ",
-	"f":"ㄑ",
-	"g":"ㄕ",
-	"h":"ㄘ",
-	"i":"ㄛ",
-	"j":"ㄨ",
-	"k":"ㄜ",
-	"l":"ㄠ",
-	"m":"ㄩ",
-	"n":"ㄙ",
-	"o":"ㄟ",
-	"p":"ㄣ",
-	"q":"ㄆ",
-	"r":"ㄐ",
-	"s":"ㄋ",
-	"t":"ㄔ",
-	"u":"ㄧ",
-	"v":"ㄒ",
-	"w":"ㄊ",
-	"x":"ㄌ",
-	"y":"ㄗ",
-	"z":"ㄈ",
-	" ":" "
+  ",":"ㄝ",
+  "-":"ㄦ",
+  ".":"ㄡ",
+  "/":"ㄥ",
+  "0":"ㄢ",
+  "1":"ㄅ",
+  "2":"ㄉ",
+  "3":"ˇ",
+  "4":"ˋ",
+  "5":"ㄓ",
+  "6":"ˊ",
+  "7":"˙",
+  "8":"ㄚ",
+  "9":"ㄞ",
+  ";":"ㄤ",
+  "a":"ㄇ",
+  "b":"ㄖ",
+  "c":"ㄏ",
+  "d":"ㄎ",
+  "e":"ㄍ",
+  "f":"ㄑ",
+  "g":"ㄕ",
+  "h":"ㄘ",
+  "i":"ㄛ",
+  "j":"ㄨ",
+  "k":"ㄜ",
+  "l":"ㄠ",
+  "m":"ㄩ",
+  "n":"ㄙ",
+  "o":"ㄟ",
+  "p":"ㄣ",
+  "q":"ㄆ",
+  "r":"ㄐ",
+  "s":"ㄋ",
+  "t":"ㄔ",
+  "u":"ㄧ",
+  "v":"ㄒ",
+  "w":"ㄊ",
+  "x":"ㄌ",
+  "y":"ㄗ",
+  "z":"ㄈ",
+  " ":" "
 };
 
 jQuery(function($) {
@@ -121,12 +121,12 @@ jQuery(function($) {
     }
   );
 
-	$('textarea').on(
-		'keypress',
-		function (ev) {
-			if (ev.altKey || ev.metaKey || ev.shiftKey) return;
+  $('textarea').on(
+    'keypress',
+    function (ev) {
+      if (ev.altKey || ev.metaKey || ev.shiftKey) return;
 
-  		ev.preventDefault();
+      ev.preventDefault();
 
       var code = ev.keyCode || ev.charCode,
       chr = String.fromCharCode(code);
@@ -134,7 +134,7 @@ jQuery(function($) {
       if (chr in layout) code = layout[chr].charCodeAt(0);
 
       mobi.keypress(code);
-		}
-	);
+    }
+  );
 });
 </script>

@@ -1,13 +1,13 @@
 <style>
 textarea {
-	width: 100%;
+  width: 100%;
 }
 .error {
-	color: red;
+  color: red;
 }
 #buffer span {
-	text-decoration: underline;
-	padding: 0 0.2em;
+  text-decoration: underline;
+  padding: 0 0.2em;
 }
 </style>
 <textarea id="result" rows="20" cols="60" disabled>Loading ...</textarea>
@@ -19,161 +19,161 @@ textarea {
 <script>
 
 function print () {
-	console.log.apply(this, arguments);
+  console.log.apply(this, arguments);
 }
 
 var jszhuying = JSZhuYing(
-	{
-//		disableIndexedDB: true,
-		progress: function (msg) {
-			jQuery('textarea').val(msg);
-		},
-		ready: function () {
-			jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
-/*			console.log('ready');
-			console.log(
-				'ㄐㄧㄣ',
-				//jszhuying.getTerms(['ㄐㄧㄣ'], print),
-				//jszhuying.getTermWithHighestScore(['ㄐㄧㄣ'], print),
-				jszhuying.getSentences(['ㄐㄧㄣ'], print)
-			);
-			console.log(
-				'ㄐㄧㄣㄊㄧㄢ',
-				jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ'], print)
-			);
-			console.log(
-				'ㄐㄧㄣㄊㄧㄢㄊㄧㄢㄑㄧˋㄏㄠˇ',
-				jszhuying.getTerms(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
-				jszhuying.getTermWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
-				jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
-				jszhuying.getSentenceWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print)
-			);
+  {
+//    disableIndexedDB: true,
+    progress: function (msg) {
+      jQuery('textarea').val(msg);
+    },
+    ready: function () {
+      jQuery('textarea').attr('disabled',false).val('Ready: ').focus();
+/*      console.log('ready');
+      console.log(
+        'ㄐㄧㄣ',
+        //jszhuying.getTerms(['ㄐㄧㄣ'], print),
+        //jszhuying.getTermWithHighestScore(['ㄐㄧㄣ'], print),
+        jszhuying.getSentences(['ㄐㄧㄣ'], print)
+      );
+      console.log(
+        'ㄐㄧㄣㄊㄧㄢ',
+        jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ'], print)
+      );
+      console.log(
+        'ㄐㄧㄣㄊㄧㄢㄊㄧㄢㄑㄧˋㄏㄠˇ',
+        jszhuying.getTerms(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
+        jszhuying.getTermWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
+        jszhuying.getSentences(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print),
+        jszhuying.getSentenceWithHighestScore(['ㄐㄧㄣ','ㄊㄧㄢ','ㄊㄧㄢ','ㄑㄧˋ','ㄏㄠˇ'], print)
+      );
 */
-		}
-	}
+    }
+  }
 ),
 layout = {
-	",":"ㄝ",
-	"-":"ㄦ",
-	".":"ㄡ",
-	"/":"ㄥ",
-	"0":"ㄢ",
-	"1":"ㄅ",
-	"2":"ㄉ",
-	"3":"ˇ",
-	"4":"ˋ",
-	"5":"ㄓ",
-	"6":"ˊ",
-	"7":"˙",
-	"8":"ㄚ",
-	"9":"ㄞ",
-	";":"ㄤ",
-	"a":"ㄇ",
-	"b":"ㄖ",
-	"c":"ㄏ",
-	"d":"ㄎ",
-	"e":"ㄍ",
-	"f":"ㄑ",
-	"g":"ㄕ",
-	"h":"ㄘ",
-	"i":"ㄛ",
-	"j":"ㄨ",
-	"k":"ㄜ",
-	"l":"ㄠ",
-	"m":"ㄩ",
-	"n":"ㄙ",
-	"o":"ㄟ",
-	"p":"ㄣ",
-	"q":"ㄆ",
-	"r":"ㄐ",
-	"s":"ㄋ",
-	"t":"ㄔ",
-	"u":"ㄧ",
-	"v":"ㄒ",
-	"w":"ㄊ",
-	"x":"ㄌ",
-	"y":"ㄗ",
-	"z":"ㄈ",
-	" ":" "
+  ",":"ㄝ",
+  "-":"ㄦ",
+  ".":"ㄡ",
+  "/":"ㄥ",
+  "0":"ㄢ",
+  "1":"ㄅ",
+  "2":"ㄉ",
+  "3":"ˇ",
+  "4":"ˋ",
+  "5":"ㄓ",
+  "6":"ˊ",
+  "7":"˙",
+  "8":"ㄚ",
+  "9":"ㄞ",
+  ";":"ㄤ",
+  "a":"ㄇ",
+  "b":"ㄖ",
+  "c":"ㄏ",
+  "d":"ㄎ",
+  "e":"ㄍ",
+  "f":"ㄑ",
+  "g":"ㄕ",
+  "h":"ㄘ",
+  "i":"ㄛ",
+  "j":"ㄨ",
+  "k":"ㄜ",
+  "l":"ㄠ",
+  "m":"ㄩ",
+  "n":"ㄙ",
+  "o":"ㄟ",
+  "p":"ㄣ",
+  "q":"ㄆ",
+  "r":"ㄐ",
+  "s":"ㄋ",
+  "t":"ㄔ",
+  "u":"ㄧ",
+  "v":"ㄒ",
+  "w":"ㄊ",
+  "x":"ㄌ",
+  "y":"ㄗ",
+  "z":"ㄈ",
+  " ":" "
 },
 altLayout = {
-	'<':'，',
-	'>':'。',
-	':':'：',
-	'"':'；'
+  '<':'，',
+  '>':'。',
+  ':':'：',
+  '"':'；'
 },
 symbolType = {
-	"ㄅ":"consonant","ㄆ":"consonant","ㄇ":"consonant","ㄈ":"consonant","ㄉ":"consonant","ㄊ":"consonant","ㄋ":"consonant","ㄌ":"consonant","ㄍ":"consonant","ㄎ":"consonant","ㄏ":"consonant","ㄐ":"consonant","ㄑ":"consonant","ㄒ":"consonant","ㄓ":"consonant","ㄔ":"consonant","ㄕ":"consonant","ㄖ":"consonant","ㄗ":"consonant","ㄘ":"consonant","ㄙ":"consonant",
-	"ㄧ":"vowel1","ㄨ":"vowel1","ㄩ":"vowel1",
-	"ㄚ":"vowel2","ㄛ":"vowel2","ㄜ":"vowel2","ㄝ":"vowel2","ㄞ":"vowel2","ㄟ":"vowel2","ㄠ":"vowel2","ㄡ":"vowel2","ㄢ":"vowel2","ㄣ":"vowel2","ㄤ":"vowel2","ㄥ":"vowel2","ㄦ":"vowel2",
-	" ":"tone","˙":"tone","ˊ":"tone","ˇ":"tone","ˋ":"tone"
+  "ㄅ":"consonant","ㄆ":"consonant","ㄇ":"consonant","ㄈ":"consonant","ㄉ":"consonant","ㄊ":"consonant","ㄋ":"consonant","ㄌ":"consonant","ㄍ":"consonant","ㄎ":"consonant","ㄏ":"consonant","ㄐ":"consonant","ㄑ":"consonant","ㄒ":"consonant","ㄓ":"consonant","ㄔ":"consonant","ㄕ":"consonant","ㄖ":"consonant","ㄗ":"consonant","ㄘ":"consonant","ㄙ":"consonant",
+  "ㄧ":"vowel1","ㄨ":"vowel1","ㄩ":"vowel1",
+  "ㄚ":"vowel2","ㄛ":"vowel2","ㄜ":"vowel2","ㄝ":"vowel2","ㄞ":"vowel2","ㄟ":"vowel2","ㄠ":"vowel2","ㄡ":"vowel2","ㄢ":"vowel2","ㄣ":"vowel2","ㄤ":"vowel2","ㄥ":"vowel2","ㄦ":"vowel2",
+  " ":"tone","˙":"tone","ˊ":"tone","ˇ":"tone","ˋ":"tone"
 },
 syllablesInBuffer = [];
 
 jQuery(function($) {
-	var $buffer = $('#buffer'),
-	$syllables = $('#syllables'),
-	$selections = $('#selections');
+  var $buffer = $('#buffer'),
+  $syllables = $('#syllables'),
+  $selections = $('#selections');
 
-	$('textarea').on(
-		'keypress',
-		function (ev) {
-			if (ev.altKey || ev.metaKey) return;
+  $('textarea').on(
+    'keypress',
+    function (ev) {
+      if (ev.altKey || ev.metaKey) return;
 
-			var chr = String.fromCharCode(ev.charCode);
+      var chr = String.fromCharCode(ev.charCode);
 
-			if (ev.shiftKey) {
-				if (chr in altLayout) {
-					this.value += $buffer.text() + altLayout[chr];
-					$buffer.empty();
-					syllablesInBuffer = [];
-				} else {
-					return;
-				}
-			}
+      if (ev.shiftKey) {
+        if (chr in altLayout) {
+          this.value += $buffer.text() + altLayout[chr];
+          $buffer.empty();
+          syllablesInBuffer = [];
+        } else {
+          return;
+        }
+      }
 
-			if (ev.keyCode === 13) { // enter
-				this.value += $buffer.text();
-				$buffer.empty();
-				syllablesInBuffer = [];
-				ev.preventDefault();
-			}
+      if (ev.keyCode === 13) { // enter
+        this.value += $buffer.text();
+        $buffer.empty();
+        syllablesInBuffer = [];
+        ev.preventDefault();
+      }
 
-			if (!(chr in layout)) return;
+      if (!(chr in layout)) return;
 
-			ev.preventDefault();
-			$('#' + symbolType[layout[chr]]).text(layout[chr]);
-			$syllables.removeClass('error');
+      ev.preventDefault();
+      $('#' + symbolType[layout[chr]]).text(layout[chr]);
+      $syllables.removeClass('error');
 
-			if (symbolType[layout[chr]] === 'tone') {
-				jszhuying.getTerms(
-					[$syllables.text()],
-					function (terms) {
-						if (!terms) {
-							$syllables.addClass('error');
-							return;
-						}
+      if (symbolType[layout[chr]] === 'tone') {
+        jszhuying.getTerms(
+          [$syllables.text()],
+          function (terms) {
+            if (!terms) {
+              $syllables.addClass('error');
+              return;
+            }
 
-						syllablesInBuffer.push($syllables.text());
-						$syllables.children().text('');
+            syllablesInBuffer.push($syllables.text());
+            $syllables.children().text('');
 
-						jszhuying.getSentenceWithHighestScore(
-							syllablesInBuffer,
-							function (terms) {
-								$buffer.empty();
-								terms.forEach(
-									function (term) {
-										$buffer.append(
-											$('<span />').text(term[0])
-										);
-									}
-								);
-							}
-						);
-					}
-				);
-			}
-		}
-	);
+            jszhuying.getSentenceWithHighestScore(
+              syllablesInBuffer,
+              function (terms) {
+                $buffer.empty();
+                terms.forEach(
+                  function (term) {
+                    $buffer.append(
+                      $('<span />').text(term[0])
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    }
+  );
 });
 </script>
