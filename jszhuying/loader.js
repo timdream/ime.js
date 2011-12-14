@@ -147,11 +147,11 @@ var JSZhuYing = function (settings) {
     }
     var req = mozIndexedDB.open('JSZhuYing', 4, 'JSZhuYing db');
     req.onerror = function () {
-      console.log('JSZhuYing: there is a problem with the database.');
+      dump('JSZhuYing: there is a problem with the database.');
       callback();
     };
     req.onupgradeneeded = function (ev) {
-      //console.log('upgradeneeded; get db', req, req.result);
+      //dump('upgradeneeded; get db', req, req.result);
       db = req.result;
       if (db.objectStoreNames.length !== 0) db.deleteObjectStore('terms');
       var store = db.createObjectStore(
@@ -162,7 +162,7 @@ var JSZhuYing = function (settings) {
       );
     };
     req.onsuccess = function () {
-      //console.log('success');
+      //dump('success');
       db = req.result;
       callback();
     };
@@ -186,7 +186,7 @@ var JSZhuYing = function (settings) {
         jsonData = JSON.parse(xhr.responseText);
       } catch (e) {}
       if (!jsonData) {
-        console.log('JSZhuYing: data.json.js failed to load.');
+        dump('JSZhuYing: data.json.js failed to load.');
       }
       xhr.responseText = null;
       delete xhr;
@@ -294,7 +294,7 @@ var JSZhuYing = function (settings) {
   */
   getTerms = function (syllables, callback) {
     if (!jsonData && !db) {
-      console.log('JSZhuYing: database not ready.');
+      dump('JSZhuYing: database not ready.');
       return callback(false);
     }
     if (db) {
@@ -364,7 +364,7 @@ var JSZhuYing = function (settings) {
 'use stricts';
 
 if (!JSZhuYing) {
-  console.log('JSZhuYing: front-end script should load *after* the main script.');
+  dump('JSZhuYing: front-end script should load *after* the main script.');
   var JSZhuYing = {};
 }
 
